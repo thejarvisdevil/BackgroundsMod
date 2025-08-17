@@ -1,0 +1,82 @@
+{
+	"geode": "4.6.2",
+	"gd": {
+		"win": "2.2074",
+		"android": "2.2074",
+		"mac": "2.2074",
+		"ios": "2.2074"
+	},
+	"id": "jarvisdevil.backgrounds",
+	"name": "Backgrounds++",
+	"version": "v1.0.0",
+	"developer": "jarvisdevil",
+	"description": "",
+	"dependencies": {
+		"geode.node-ids": {
+			"version": ">=v1.20.1",
+			"importance": "required"
+		},
+		"user95401.gif-sprites": {
+			"version": ">=v2.0.0",
+			"importance": "required"
+		}
+	},
+	"resources": {
+		"sprites": [
+			"resources/backgrounds/*.png"
+		],
+		"files": [
+			"resources/backgrounds/*.gif"
+		]
+	},
+	"settings": {
+		"bg-settings": {
+			"type": "title",
+			"name": "Background Settings",
+			"description": "Configure settings related to custom backgrounds. These should be important for you to configure."
+		},
+		"backgrounds": {
+			"type": "folder",
+			"name": "Backgrounds",
+			"default": "{mod_config_dir}/backgrounds",
+			"description": "Folder containing all of your PNG, GIF, JPG and WEBP image files for setting as your custom background. If you run into issues with your built-in File Manager on Android, Download and use RS File Manager from Google Play for selecting a folder."
+	    },
+		"manual-background": {
+			"type": "file",
+			"name": "Manual Background",
+			"default": "{mod_config_dir}/backgrounds/everything.png",
+			"description": "Disable randomized backgrounds and lets you set whatever as your background. (Maybe try downloading a high quality Nyan Cat GIF from Google)",
+			"control": {
+				"dialog": "open",
+				"filters": [
+					{
+						"files": [
+							"*.png",
+							"*.gif"
+						],
+						"description": "Image Files"
+					}
+				]
+			}
+		},
+		"menu-settings": {
+			"type": "title",
+			"name": "Menu Settings",
+			"description": "Configure settings related to specific menus in Geometry Dash. We get you don't want to see random backgrounds you might not like in some menus."
+		},
+		"show-icons": {
+			"type": "bool",
+			"name": "Show Icons",
+			"default": false,
+			"description": "Show the player icons in the main menu. (you do know those running player icons that show in the main menu, right?)"
+		},
+		"only-main-menu": {
+			"type": "bool",
+			"name": "Only Main Menu",
+			"default": false,
+			"description": "Show custom backgrounds in the main menu only. (selecting this option will officially make you the most boring person to use this mod)"
+		}
+	},
+	"tags": ["universal", "customization", "utility", "enhancement"],
+	"links": {"community": "https://dsc.gg/devlin", "homepage": "https://jarvisdevil.com/?source=backgrounds_geode"}
+}
