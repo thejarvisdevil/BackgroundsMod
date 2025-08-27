@@ -8,9 +8,9 @@
 	},
 	"id": "jarvisdevil.backgrounds",
 	"name": "Backgrounds++",
-	"version": "v1.0.0",
+	"version": "v1.0.1",
 	"developer": "jarvisdevil",
-	"description": "",
+	"description": "Custom backgrounds for all menus.",
 	"dependencies": {
 		"geode.node-ids": {
 			"version": ">=v1.20.1",

@@ -30,3 +30,6 @@ About 15 custom backgrounds come included inside Backgrounds++ so you get to see
 - SecretLayer2 (vault of secrets)
 - SecretLayer3 (the monster thing that gives you a gauntlet as a reward)
 - SecretRewardsLayer (im done)
+
+## Warning
+Do not use a filename or provide a path to a file that has emojis or any other non-Unicode characters. This will cause Geode to crash and I confirmed this is a problem with Geode itself and not a problem with my garbage code.

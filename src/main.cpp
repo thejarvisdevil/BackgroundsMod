@@ -31,7 +31,9 @@ static auto setupBGPP = [](CCNode* self, const std::string& layerName) {
     auto mod = Mod::get();
     auto bgDir = mod->getSettingValue<std::filesystem::path>("backgrounds");
     if (!std::filesystem::exists(bgDir)) {
-        std::filesystem::create_directories(bgDir);
+        std::error_code stdec;
+        std::filesystem::create_directories(bgDir, stdec);
+        if (stdec) { return; }
         for (auto& f : {
             "cyber4.gif","debian.png","gray-background.png","lake.png","lines.gif",
             "minimal_gradient.png","odysee.png","plain-wallpaper.png",
@@ -39,17 +41,21 @@ static auto setupBGPP = [](CCNode* self, const std::string& layerName) {
             "shape-abstract.png","shiny-colors.png","smooth_blue.png","wallpaper3-dark.png"
         }) {
             auto src = mod->getResourcesDir() / f, dst = bgDir / f;
-            if (std::filesystem::exists(src) && file::readBinary(src)) 
-                file::writeBinary(dst, *file::readBinary(src));
+            std::error_code stdec2;
+            if (!std::filesystem::exists(src, stdec2) || stdec2) continue;
+            if (auto data = file::readBinary(geode::utils::string::pathToString(src))) {
+                file::writeBinary(geode::utils::string::pathToString(dst), *data);
+            }
         }
-        std::ofstream{ bgDir / "DROP IMAGES HERE" }.close();
+        std::ofstream{ geode::utils::string::pathToString(bgDir / "DROP IMAGES HERE") }.close();
     }
 
-    auto le_epic = [&](const std::string& path) -> CCNode* {
-        std::string lower = path; std::transform(lower.begin(), lower.end(), lower.begin(), ::tolower);
+    auto le_epic = [&](const std::filesystem::path& p) -> CCNode* {
+        auto pathStr = geode::utils::string::pathToString(p);
+        std::string lower = pathStr; std::transform(lower.begin(), lower.end(), lower.begin(), ::tolower);
         if (lower.ends_with(".png"))
-            return CCSprite::create(path.c_str());
-        if (auto gif = CCGIFAnimatedSprite::create(path.c_str())) {
+            return CCSprite::create(pathStr.c_str());
+        if (auto gif = CCGIFAnimatedSprite::create(pathStr.c_str())) {
             gif->play();
             gif->setLoop(true);
             return gif;
@@ -58,45 +64,45 @@ static auto setupBGPP = [](CCNode* self, const std::string& layerName) {
     };
 
     CCNode* bg = nullptr;
-    auto manual = mod->getSettingValue<std::filesystem::path>("manual-background").string();
-    if (!manual.empty()) bg = le_epic(manual);
+    auto manual = mod->getSettingValue<std::filesystem::path>("manual-background");
+	if (!geode::utils::string::pathToString(manual).empty()) bg = le_epic(manual);
 
     if (!bg) {
         for (auto& ext : {".png", ".gif"}) {
             auto fullPath = bgDir / (layerName + ext);
-            if (auto node = le_epic(fullPath.string())) {
+            if (auto node = le_epic(fullPath)) {
                 bg = node;
                 break;
             }
         }
         if (!bg) {
             std::vector<std::filesystem::path> imgs;
-            for (auto& e : std::filesystem::directory_iterator(bgDir))
-                if (e.is_regular_file()) {
+            std::error_code stdec3;
+            for (auto& e : std::filesystem::directory_iterator(bgDir, stdec3))
+                if (!stdec3 && e.is_regular_file()) {
                     auto ext = e.path().extension().string();
                     std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
                     if (ext == ".png" || ext == ".gif")
                         imgs.push_back(e.path());
                 }
             if (!imgs.empty()) {
-                static std::mt19937_64 rng{ std::random_device{}() }; // mt19937_64 sounds awful jesus christ do better c++
-                bg = le_epic(imgs[std::uniform_int_distribution<size_t>(0, imgs.size() - 1)(rng)].string()); // OH MY SWEET JESUS
+                static std::mt19937_64 rng{ std::random_device{}() };
+                bg = le_epic(imgs[std::uniform_int_distribution<size_t>(0, imgs.size() - 1)(rng)]);
             }
         }
     }
 
     if (!bg) {
         if (auto fallback = CCGIFAnimatedSprite::create("static.gif"_spr)) {
-    		fallback->setID("oops-gif"_spr);
+            fallback->setID("oops-gif"_spr);
             fallback->play();
-			fallback->setLoop(true);
+            fallback->setLoop(true);
             bg = fallback;
-            auto lbl = CCLabelTTF::create("Backgrounds++ gave up displaying a background because of an error.\nPlease check your settings and make sure your images are not corrupted.", "Arial", 12.f);
+            auto lbl = CCLabelTTF::create("Backgrounds++ gave up displaying a background because of an error.\nPlease check your settings, check if images are not corrupted,\ncheck file names and paths.\n\nIf you are stuck then please contact @jarvisdevlin on\nDiscord or jarvisdevil on Geometry Dash for help.\nGive up? Reinstall the mod.", "Arial", 12.f);
             auto win = CCDirector::sharedDirector()->getWinSize();
-            lbl->setPosition({ win.width / 2, win.height / 3.5f });
-            lbl->setColor(ccc3(255, 0, 0)); lbl->setZOrder(-1);
-			lbl->setZOrder(99);
-		    lbl->setID("oops"_spr);
+            lbl->setPosition({ win.width / 2, win.height / 2.5f });
+            lbl->setColor(ccc3(255, 0, 0)); lbl->setZOrder(99);
+            lbl->setID("oops"_spr);
             self->addChild(lbl);
         }
     }
@@ -107,11 +113,10 @@ static auto setupBGPP = [](CCNode* self, const std::string& layerName) {
         bg->setScaleX(win.width / bg->getContentSize().width);
         bg->setScaleY(win.height / bg->getContentSize().height);
         bg->setZOrder(-2);
-		bg->setID("soulja-boy"_spr);
+        bg->setID("soulja-boy"_spr);
         self->addChild(bg);
     }
 };
-
 
 class $modify(MyMenuLayer, MenuLayer) {
     bool init() {
@@ -146,9 +151,10 @@ class $modify(MyMenuLayer, MenuLayer) {
         setupBGPP(this, "MenuLayer");
         return true;
     }
+
     void openFolder(CCObject*) {
 		auto mod = Mod::get();
-        file::openFolder(mod->getSettingValue<std::filesystem::path>("backgrounds"));
+        file::openFolder(geode::utils::string::pathToString(mod->getSettingValue<std::filesystem::path>("backgrounds")));
     }
 };
 
